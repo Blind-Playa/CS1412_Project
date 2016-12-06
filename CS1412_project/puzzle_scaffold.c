@@ -84,9 +84,10 @@ int main() {
 // Post-conditions: A random puzzle from the file pointed to by fin will be
 //                  stored in puzzle.
 void loadPuzzle(int puzzle[][PUZZLE_SIDE], FILE *fin) {
-	int i, j, x, y;
-	char *str = malloc(13);
-	char *stringarr[4];
+	int i, x, y;
+	char *str = (char *) malloc(13);
+	char *strNums[PUZZLE_SIDE];
+	char *ptrStr = NULL;
 
 	// Read in the file if it doesn't exist, exit
 	if (fin != NULL) {
@@ -96,8 +97,8 @@ void loadPuzzle(int puzzle[][PUZZLE_SIDE], FILE *fin) {
 		if (fgets(str, 13, fin) != NULL) {
 
 			// Concatenate and convert the chars to make digits in an int then assign a random puzzle number
-			int digit1 = str - 48;
-			int digit2 = ++str - 48;
+			int digit1 = *str - 48;
+			int digit2 = ++*str - 48;
 			unsigned pow = 10;
 			while (digit1 >= pow) {
 				pow *= 10;
@@ -111,22 +112,38 @@ void loadPuzzle(int puzzle[][PUZZLE_SIDE], FILE *fin) {
 				if (i == (selected_PuzzleNum * (PUZZLE_SIDE + 1))) {
 
 					// Read in the selected puzzle to store to an array
-					for (j = 0; j < PUZZLE_SIDE; j++) {
-						fgets(stringarr[j], 13, fin);
-						for (x = 0; x < PUZZLE_SIDE; ) {
-
+					for (x = 0; x < PUZZLE_SIDE; x++) {
+						fgets(str, 13, fin);
+						ptrStr = str;
+						while (*ptrStr != '\n') {
+							
+							if (*ptrStr == ' ') {
+								int digit1 = *str - 48;
+								int digit2 = ++*str - 48;
+								unsigned pow = 10;
+								while (digit1 >= pow) {
+									pow *= 10;
+								}
+								int numOfPuzzles = digit2 * pow + digit1;
+							}
+							ptrStr++;
 						}
 					}
+
+					// Stop reading once the puzzle has been assigned
 					break;
 				}
 			}
+			free(str);
 		}
 		else {
+			free(str);
 			printf("first line of file does not contain an integer\n");
 			exit(-1);
 		}
 	}
 	else {
+		free(str);
 		printf("file error\n");
 		exit(-1);
 	}

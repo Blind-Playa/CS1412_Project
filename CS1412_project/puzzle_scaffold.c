@@ -17,8 +17,8 @@ int solved(int puzzle[][PUZZLE_SIDE]);
 int main() {
 
 	int puzzle[PUZZLE_SIDE][PUZZLE_SIDE];
-	char filename[MAX_FILE_LENGTH + 1];
-	int ans;
+	char filename[31];
+	int ans = 0; // Had to change this line to make it work in visual studio
 
 	srand(time(0));
 
@@ -26,12 +26,12 @@ int main() {
 
 	// Get the puzzle file.
 	printf("Enter the file storing all of the puzzle configurations.\n");
-	scanf_s("%s", filename);
+	scanf_s("%s", filename, sizeof(filename));
 
 	while (ans != 2) {
 
 		FILE *fin;
-		fin = fopen(filename, "r");
+		errno_t file = fopen_s(&fin, filename, "r"); // Had to change this line to make it work in visual studio
 
 		// Load the puzzle.
 		loadPuzzle(puzzle, fin);
@@ -84,77 +84,30 @@ int main() {
 // Post-conditions: A random puzzle from the file pointed to by fin will be
 //                  stored in puzzle.
 void loadPuzzle(int puzzle[][PUZZLE_SIDE], FILE *fin) {
-	int i, x, y, number;
-	char *str = (char *) malloc(13);
-	char *ptrStr = NULL;
+	int numOfPuzzles, selectedPuzzle, i = 0, j, x, y, number;
+	int *ptr = NULL;
 
 	// Read in the file if it doesn't exist, exit
 	if (fin != NULL) {
-
-		// Read in the first line containing numOfPuzzles
-		// Assign the string read in by fgets and check to see if there is anything on that line
-		if (fgets(str, 13, fin) != NULL) {
-
-			// Concatenate and convert the chars to make digits in an int then assign a random puzzle number
-			int digit1 = *str - 48;
-			int digit2, pow, numOfPuzzles;
-			if (++*ptrStr != ' ') {
-				digit2 = *ptrStr - 48;
-				pow = 10;
-				while (digit1 >= pow) {
-					pow *= 10;
-				}
-				numOfPuzzles = digit2 * pow + digit1;
-			}
-			else {
-				numOfPuzzles = digit1;
-			}
-			int selected_PuzzleNum = rand() % numOfPuzzles;
-
-			// read in the next numOfPuzzles * 5 lines until we hit selected_PuzzleNum
-			for (i = 0; i < (numOfPuzzles * (PUZZLE_SIDE + 1)); i++) {
-				fgets(str, 13, fin);
-				if (i == (selected_PuzzleNum * (PUZZLE_SIDE + 1))) {
-
-					// Read in the selected puzzle to store to an array
-					for (x = 0; x < PUZZLE_SIDE; x++) {
-						y = 0;
-						fgets(str, 13, fin);
-						ptrStr = str;
-						while (*ptrStr != '\n') {
-							digit1 = *ptrStr - 48;
-							if (*ptrStr != ' ') {
-								digit2 = ++*ptrStr - 48;
-								pow = 10;
-								while (digit1 >= pow) {
-									pow *= 10;
-								}
-								number = digit2 * pow + digit1;
-								ptrStr++; //Skip the following space
-							}
-							else {
-								number = digit1;
-							}
-							puzzle[x][y] = number;
-							y++;
-							ptrStr++; // Move to the next char
-						}
+		// Read the first line in the file
+		fscanf_s(fin, "%d", &numOfPuzzles);
+		selectedPuzzle = rand() % numOfPuzzles;
+		
+		// Read all ints after until you the selected puzzle is reached then start storing them in the puzzle array
+		while (!feof (fin)) {
+			fscanf_s(fin, "%d", &number);
+			i++;
+			if (i == selectedPuzzle * (PUZZLE_SIDE * PUZZLE_SIDE)) {
+				for (x = 0; x < PUZZLE_SIDE; x++) {
+					for (y = 0; y < PUZZLE_SIDE; y++) {
+						fscanf_s(fin, "%d", &number);
+						puzzle[x][y] = number;
 					}
-
-					// Stop reading once the puzzle has been assigned
-					break;
 				}
 			}
-			free(str);
-		}
-		else {
-			free(str);
-			printf("first line of file does not contain an integer\n");
-			exit(-1);
 		}
 	}
 	else {
-		free(str);
 		printf("file error\n");
 		exit(-1);
 	}
@@ -163,7 +116,10 @@ void loadPuzzle(int puzzle[][PUZZLE_SIDE], FILE *fin) {
 // Pre-conditions: none.
 // Post-conditions: A basic menu will be prompted and the user's result returned.
 int getMove() {
-
+	int move;
+	printf("\nWhich piece would you like to slide into the open slot?\nNote, answering 0 means you quit the game without winning\n");
+	scanf_s("%d", &move);
+	return move;
 }
 
 // Pre-conditions: A valid puzzle is stored in puzzle.
@@ -188,14 +144,14 @@ void printPuzzle(int puzzle[][PUZZLE_SIDE]) {
 //                  the move is executed and 1 is returned. Otherwise, 0
 //                  is returned and no change is made to puzzle.
 int doMove(int puzzle[][PUZZLE_SIDE], int move) {
-	int *i;
-	if ((sizeof(puzzle) / sizeof(puzzle[0][0])) == 16) {
-		for (i = *puzzle; i != NULL; i++) {
+	int i, j;
+	for (i = 0; i < PUZZLE_SIDE; i++) {
+		for (j = 0; j < PUZZLE_SIDE; j++) {
+			if (puzzle[i][j] == 0) {
 
+			}
 		}
 	}
-	else
-		printf("not a valid puzzle | too many integers");
 }
 
 // Pre-condition: none
@@ -209,5 +165,14 @@ void swap(int *a, int *b) {
 // Pre-condition: puzzle stores a valid puzzle configuration.
 // Post-condition: Returns 1 if puzzles is solved, 0 otherwise.
 int solved(int puzzle[][PUZZLE_SIDE]) {
-
+	int i, j, temp = -1;
+	for (i = 0; i < PUZZLE_SIDE; i++) {
+		for (j = 0; j < PUZZLE_SIDE; j++) {
+			if (temp > puzzle[i][j]) {
+				return 0;
+			}
+			temp = puzzle[i][j];
+		}
+	}
+	return 1;
 }

@@ -1,3 +1,8 @@
+// Joshua Johnson
+// R11486776
+// CS1412-001
+// Puzzle Game in C
+// 12/6/16
 // Scaffold for puzzle problem
 #include <stdio.h>
 #include <stdlib.h>
@@ -95,6 +100,15 @@ void loadPuzzle(int puzzle[][PUZZLE_SIDE], FILE *fin) {
 		
 		// Read all ints after until you the selected puzzle is reached then start storing them in the puzzle array
 		while (!feof (fin)) {
+			if (selectedPuzzle == 0) {
+				for (x = 0; x < PUZZLE_SIDE; x++) {
+					for (y = 0; y < PUZZLE_SIDE; y++) {
+						fscanf_s(fin, "%d", &number);
+						puzzle[x][y] = number;
+					}
+				}
+				break;
+			}
 			fscanf_s(fin, "%d", &number);
 			i++;
 			if (i == selectedPuzzle * (PUZZLE_SIDE * PUZZLE_SIDE)) {
@@ -118,7 +132,7 @@ void loadPuzzle(int puzzle[][PUZZLE_SIDE], FILE *fin) {
 int getMove() {
 	int move;
 	printf("\nWhich piece would you like to slide into the open slot?\nNote, answering 0 means you quit the game without winning\n");
-	scanf_s("%d", &move);
+	scanf_s("%d", &move, sizeof(move));
 	return move;
 }
 
@@ -130,10 +144,10 @@ void printPuzzle(int puzzle[][PUZZLE_SIDE]) {
 	for (i = 0; i < PUZZLE_SIDE; i++) {
 		for (j = 0; j < PUZZLE_SIDE; j++) {
 			if (puzzle[i][j] == 0) {
-				printf("_ ");
+				printf("_\t");
 			}
 			else
-				printf("%d ", puzzle[i][j]);
+				printf("%d\t", puzzle[i][j]);
 		}
 		printf("\n");
 	}
@@ -144,22 +158,36 @@ void printPuzzle(int puzzle[][PUZZLE_SIDE]) {
 //                  the move is executed and 1 is returned. Otherwise, 0
 //                  is returned and no change is made to puzzle.
 int doMove(int puzzle[][PUZZLE_SIDE], int move) {
-	int i, j;
-	for (i = 0; i < PUZZLE_SIDE; i++) {
-		for (j = 0; j < PUZZLE_SIDE; j++) {
-			if (puzzle[i][j] == 0) {
-
+	int *ptr = NULL, *ptr2 = NULL, j, k, i;
+	for (j = 0; j < PUZZLE_SIDE; j++) {
+		for (k = 0; k < PUZZLE_SIDE; k++) {
+			if (puzzle[j][k] == 0) {
+				ptr2 = &puzzle[j][k];
+			}
+			if (puzzle[j][k] == move) {
+				ptr = &puzzle[j][k];
 			}
 		}
+		if ((ptr - ptr2 == 1) || (ptr - ptr2 == -1)) {
+			swap(ptr, ptr2);
+			return 0;
+		}
+		else if ((ptr - ptr2 == 4) || (ptr - ptr2 == -4)) {
+			swap(ptr, ptr2);
+			return 0;
+		}
+		else return 1;
 	}
 }
 
 // Pre-condition: none
 // Post-condition: swaps the values in the variables pointed to by a and b.
 void swap(int *a, int *b) {
-	int temp = *a;
+	int temp;
+	temp = *a;
 	*a = *b;
 	*b = temp;
+	printf("%d and %d", a, b);
 }
 
 // Pre-condition: puzzle stores a valid puzzle configuration.
